@@ -479,15 +479,17 @@ jobs:
       ]
     env:
       ACTION_TYPE: ${{ fromJSON('[["Development", "Pre-release"], ["Release", "Release"]]')[startsWith(github.ref, 'refs/tags/v')][startsWith(github.ref, 'refs/tags/pre')] }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
     steps:
       - name: Cleanup
         uses: geekyeggo/delete-artifact@v5
         with:
           name: ${{ env.CORE_LOVE_ARTIFACT_NAME }}
       - name: Send Discord message
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && env.DISCORD_WEBHOOK != ''
         shell: python
         run: |
+          import os
           import requests
           import json
           headers = {
@@ -527,4 +529,4 @@ jobs:
               }
             ]
           })
-          requests.request("POST", "${{ secrets.DISCORD_WEBHOOK }}", headers=headers, data=payload)
+          requests.request("POST", os.environ["DISCORD_WEBHOOK"], headers=headers, data=payload)
